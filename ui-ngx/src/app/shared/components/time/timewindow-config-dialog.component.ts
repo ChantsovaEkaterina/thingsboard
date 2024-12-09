@@ -20,13 +20,16 @@ import {
   currentHistoryTimewindow,
   currentRealtimeTimewindow,
   historyAllowedAggIntervals,
+  historyDefaultAggInterval,
   HistoryWindowType,
   historyWindowTypeTranslations,
   Interval,
   realtimeAllowedAggIntervals,
+  realtimeDefaultAggInterval,
   RealtimeWindowType,
   realtimeWindowTypeTranslations,
   Timewindow,
+  TimewindowAdvancedParams,
   TimewindowAggIntervalsConfig,
   TimewindowType,
   updateFormValuesOnTimewindowTypeChange
@@ -262,6 +265,14 @@ export class TimewindowConfigDialogComponent extends PageComponent implements On
           );
         }
       });
+      this.timewindowForm.get('realtime.advancedParams').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe((advancedParams: TimewindowAdvancedParams) => {
+        const defaultAggInterval = realtimeDefaultAggInterval(this.timewindowForm.getRawValue(), advancedParams);
+        if (defaultAggInterval) {
+          this.timewindowForm.get('realtime.interval').patchValue(defaultAggInterval, {emitEvent: false});
+        }
+      });
       this.timewindowForm.get('history.timewindowMs').valueChanges.pipe(
         takeUntil(this.destroy$)
       ).subscribe((timewindowMs: number) => {
@@ -284,6 +295,14 @@ export class TimewindowConfigDialogComponent extends PageComponent implements On
           this.timewindowForm.get('history.interval').patchValue(
             quickAggIntervalsConfig[quickInterval].defaultAggInterval, {emitEvent: false}
           );
+        }
+      });
+      this.timewindowForm.get('history.advancedParams').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe((advancedParams: TimewindowAdvancedParams) => {
+        const defaultAggInterval = historyDefaultAggInterval(this.timewindowForm.getRawValue(), advancedParams);
+        if (defaultAggInterval) {
+          this.timewindowForm.get('history.interval').patchValue(defaultAggInterval, {emitEvent: false});
         }
       });
 
@@ -624,7 +643,7 @@ export class TimewindowConfigDialogComponent extends PageComponent implements On
             intervalsConfigPopover.hide();
             if (result) {
               this.timewindowForm.get(allowedIntervalsControlName).patchValue(result.allowedIntervals);
-              this.timewindowForm.get(aggIntervalsConfigControlName).patchValue(result.aggIntervalsConfig);
+              this.timewindowForm.get(aggIntervalsConfigControlName).patchValue(result.aggIntervalsConfig, {emitEvent: true});
               this.timewindowForm.markAsDirty();
             }
           }
